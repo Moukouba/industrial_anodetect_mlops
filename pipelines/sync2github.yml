@@ -20,20 +20,11 @@ stages:
       fetchDepth: 0   # IMPORTANT: full history
 
     - script: |
-        echo "== Git diagnostics =="
-        git --version
-        git rev-parse --is-shallow-repository
-        git log -1 --oneline
+        git config --global user.email "m_moukouba@yahoo.fr"
+        git config --global user.name "Moukouba"
 
-        echo "== Configure/repair remote =="
-        git remote remove github 2>nul || echo "remote github did not exist"
-        git remote add github https://$(GITHUB_PAT)@github.com/DeepKnowledge1/$(Build.Repository.Name).git
-        git remote -v
+        git remote remove github || echo remote not found
+        git remote add github https://$(GITHUB_PAT)@github.com/Moukouba/$(Build.Repository.Name).git
 
-        echo "== Optional: reduce push pain on big repos =="
-        git config http.postBuffer 524288000
-        git config core.compression 0
-
-        echo "== Push =="
-        git push github HEAD:main --force
+        git push HEAD:main --force
       displayName: 'Push to GitHub'
