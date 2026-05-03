@@ -10,16 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history
+          fetch-depth: 0
 
       - name: Push to Azure DevOps
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         run: |
+          set -e
+
           git config --global user.email "m_moukouba@yahoo.fr"
           git config --global user.name "Moukouba"
 
-          git remote add devops https://$(AZURE_DEVOPS_PAT)@dev.azure.com/mmoukouba/anodetect/_git/industrial_anodetect_mlops
+          git remote add devops https://$AZURE_DEVOPS_PAT@dev.azure.com/mmoukouba/anodetect/_git/industrial_anodetect_mlops
 
           git push devops HEAD:main --force-with-lease
