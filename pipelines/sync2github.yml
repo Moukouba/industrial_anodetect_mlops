@@ -26,5 +26,5 @@ stages:
         git remote remove github || echo remote not found
         git remote add github https://$(GITHUB_PAT)@github.com/Moukouba/$(Build.Repository.Name).git
 
-        git push HEAD:main --force
+        git push github HEAD:main --force
       displayName: 'Push to GitHub'
