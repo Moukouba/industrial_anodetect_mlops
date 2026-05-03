@@ -1,0 +1,45 @@
+# This pipeline is triggered by pushes to the 'main' branch of the GitHub repository.
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - '*' # Trigger on any changes in the repository
+
+# Define repository resources. This links to your GitHub repository.
+resources:
+  repositories:
+    - repository: self_github_repo # A name for this repository resource
+      type: github
+      endpoint: MyGitHubConnection # IMPORTANT: Replace with the actual name of your GitHub Service Connection
+      name: Moukouba/industrial_anodetect_mlops # Your GitHub organization/username and repository name
+      ref: main # The default branch to check out
+
+pool:
+  vmImage: 'ubuntu-latest' # Or another suitable agent image
+
+stages:
+- stage: BuildAndSync
+  displayName: 'Build and Sync from GitHub'
+  jobs:
+  - job: SyncJob
+    displayName: 'Sync GitHub Changes'
+    steps:
+    - checkout: self_github_repo # Checkout the code from the defined GitHub repository resource
+      clean: true
+      fetchDepth: 0 # Fetch all history for potential Git operations if needed
+
+    - script: |
+        echo "Successfully pulled changes from GitHub repository: $(Build.Repository.Name)"
+        echo "Current commit: $(Build.SourceVersionMessage)"
+        echo "Listing files in the checked out repository:"
+        ls -F
+      displayName: 'Verify GitHub Checkout and List Files'
+
+    # Add your subsequent build, test, and deployment steps here.
+    # For example, you might want to run your data validation, training, or deployment pipelines.
+    # Example:
+    # - template: ../pipelines/templates/data_validation.yml # Assuming this path is correct relative to devops/azure-pipelines.yml
+    #   parameters:
+    #     someParameter: someValue
