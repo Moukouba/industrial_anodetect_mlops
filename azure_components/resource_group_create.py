@@ -2,7 +2,7 @@ import argparse
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resource import ResourceManagementClient
 
-# this function is meant to create resource groupgit reset --hard devops/main ###
+# this function is meant to create resource groupg 
 def create_resource_group(subscription_id, resource_group_name, location, tags):
     """
     Create an Azure Resource Group using the Azure SDK for Python, with optional tags.
