@@ -17,14 +17,19 @@ stages:
     steps:
     - checkout: self
       clean: true
-      fetchDepth: 0   # IMPORTANT: full history
+      fetchDepth: 0
 
     - script: |
+        set -euo pipefail
+
         git config --global user.email "m_moukouba@yahoo.fr"
         git config --global user.name "Moukouba"
 
-        git remote remove github || echo remote not found
-        git remote add github https://$(GITHUB_PAT)@github.com/Moukouba/$(Build.Repository.Name).git
+        git remote remove github || true
+        git remote add github https://github.com/Moukouba/$(Build.Repository.Name).git
 
-        git push github HEAD:main --force
+        git config --global credential.helper store
+        echo "https://$(GITHUB_PAT):x-oauth-basic@github.com" > ~/.git-credentials
+
+        git push github HEAD:main --force-with-lease
       displayName: 'Push to GitHub'
