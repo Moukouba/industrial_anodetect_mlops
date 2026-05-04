@@ -1,0 +1,22 @@
+name: Sync GitHub → Azure DevOps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Azure DevOps
+        env:
+          AZURE_PAT: ${{ secrets.AZURE_PAT }}
+        run: |
+          git remote add azure https://mmoukouba:${AZURE_PAT}@dev.azure.com/mmoukouba/anodetect/_git/industrial_anodetect_mlops
+          git push azure HEAD:main --force
