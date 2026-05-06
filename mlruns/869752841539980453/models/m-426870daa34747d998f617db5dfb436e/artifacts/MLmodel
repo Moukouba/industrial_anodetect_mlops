@@ -1,0 +1,33 @@
+artifact_path: file:///home/moukouba/industrial_anodetect_mlops/mlruns/869752841539980453/models/m-426870daa34747d998f617db5dfb436e/artifacts
+flavors:
+  onnx:
+    code: null
+    data: model.onnx
+    onnx_session_options: null
+    onnx_version: 1.21.0
+    providers:
+    - CUDAExecutionProvider
+    - CPUExecutionProvider
+  python_function:
+    data: model.onnx
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.onnx
+    python_version: 3.11.2
+is_signature_from_type_hint: false
+mlflow_version: 3.9.0
+model_id: m-426870daa34747d998f617db5dfb436e
+model_size_bytes: 2078171
+model_uuid: m-426870daa34747d998f617db5dfb436e
+prompts: null
+run_id: 71a25538d31f43fc8efd3c40eaeccb9e
+signature:
+  inputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float32", "shape": [-1, 3,
+    224, 224]}}]'
+  outputs: '[{"name": "anomaly_score", "type": "tensor", "tensor-spec": {"dtype":
+    "float32", "shape": [-1]}}, {"name": "anomaly_map", "type": "tensor", "tensor-spec":
+    {"dtype": "float32", "shape": [-1, 224, 224]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-06 02:03:55.662287'

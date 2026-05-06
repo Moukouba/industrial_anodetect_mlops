@@ -6,7 +6,7 @@ import AnomaVision.anomavision as AnomaVision
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from AnomaVision.export import ModelExporter
+from anomavision.export import ModelExporter
 import argparse
 import mlflow
 import mlflow.onnx
@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--config', type=str, default='config.yml', help='Path to config.yml/.json')
 
     # Dataset paths
-    parser.add_argument('--dataset_path', default="D:/01-DATA/bottle", type=str, help='Path to dataset folder with train/good images')
+    parser.add_argument('--dataset_path', default="/home/moukouba/DATA/01-DATA/bottle", type=str, help='Path to dataset folder with train/good images')
     parser.add_argument('--test_dataset_path', type=str, default=None, help='Path to test dataset (defaults to dataset_path/test)')
 
     # Model paths

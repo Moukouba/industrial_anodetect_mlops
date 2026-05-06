@@ -1,0 +1,14 @@
+artifact_uri: file:///home/moukouba/industrial_anodetect_mlops/mlruns/869752841539980453/598b88cec9514cf08b7e18c9659d3ff5/artifacts
+end_time: 1778033629254
+entry_point_name: ''
+experiment_id: '869752841539980453'
+lifecycle_stage: active
+run_id: 598b88cec9514cf08b7e18c9659d3ff5
+run_name: anomaV
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1778033611254
+status: 3
+tags: []
+user_id: moukouba
