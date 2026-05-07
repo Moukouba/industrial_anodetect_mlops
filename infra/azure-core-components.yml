@@ -22,6 +22,22 @@ stages:
         displayName: "Create Workspace, Compute, Dataset, Environment"
         steps:
 
+          - task: Bash@3
+            displayName: "Pre-check - Verify local paths exist"
+            inputs:
+              targetType: inline
+              script: |
+                echo "Checking data path..."
+                ls $(DATA_ANO_DIR) || { echo "ERROR: Data path not found!"; exit 1; }
+                
+                echo "Checking SSL cert..."
+                ls $(SSL_CERT_PATH) || { echo "ERROR: SSL cert not found!"; exit 1; }
+               
+                echo "Checking SSL key..."
+                ls $(SSL_KEY_PATH) || { echo "ERROR: SSL key not found!"; exit 1; }
+                
+                echo "All paths verified!"
+
           - task: AzureCLI@2
             displayName: "Step 0 - Install Azure ML extension"
             inputs:
