@@ -1,0 +1,88 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none   # ← manual trigger only, no auto-run on push
+
+pool:
+  name: Default
+
+variables:
+  - group: mlops-azure-components
+
+stages:
+  - stage: ProvisionAKS
+    displayName: "Provision AKS Inference Infrastructure"
+    jobs:
+      - job: AKSSetup
+        displayName: "Create and Attach AKS Cluster"
+        steps:
+
+          - task: AzureCLI@2
+            displayName: "Step 0 - Install Azure ML extension"
+            inputs:
+              azureSubscription: mlops_anomaly
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az extension add --name ml
+
+          - task: AzureCLI@2
+            displayName: "Step 1 - Create AKS Cluster"
+            inputs:
+              azureSubscription: mlops_anomaly
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az aks create \
+                  --name $(AKS_NAME) \
+                  --resource-group $(RESOURCE_GROUP) \
+                  --enable-cluster-autoscaler \
+                  --min-count 1 \
+                  --max-count 2 \
+                  --node-count 2 \
+                  --node-vm-size Standard_DS3_v2 \
+                  --enable-managed-identity \
+                  --generate-ssh-keys \
+                  --enable-addons monitoring \
+                  --load-balancer-idle-timeout 4
+
+          - task: AzureCLI@2
+            displayName: "Step 2 - Create k8s Extension"
+            inputs:
+              azureSubscription: mlops_anomaly
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az k8s-extension create \
+                  --name azureml \
+                  --extension-type Microsoft.AzureML.Kubernetes \
+                  --cluster-type managedCluster \
+                  --cluster-name $(AKS_NAME) \
+                  --resource-group $(RESOURCE_GROUP) \
+                  --configuration-settings enableInference=True \
+                    inferenceRouterServiceType=loadBalancer \
+                    sslCname=$(SSL_CNAME) \
+                  --config-protected-settings \
+                    sslCertPemFile=$(SSL_CERT_PATH) \
+                    sslKeyPemFile=$(SSL_KEY_PATH)
+
+          - task: AzureCLI@2
+            displayName: "Step 3 - Attach AKS to Azure ML Workspace"
+            inputs:
+              azureSubscription: mlops_anomaly
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                AKS_ID=$(az aks show \
+                  --name $(AKS_NAME) \
+                  --resource-group $(RESOURCE_GROUP) \
+                  --query id -o tsv)
+                az ml compute attach \
+                  --resource-group $(RESOURCE_GROUP) \
+                  --workspace-name $(WORKSPACE) \
+                  --type Kubernetes \
+                  --name $(ML_AKS_NAME) \
+                  --resource-id $AKS_ID \
+                  --namespace azureml
