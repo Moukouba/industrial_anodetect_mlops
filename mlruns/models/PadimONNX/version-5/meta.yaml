@@ -1,0 +1,15 @@
+creation_timestamp: 1778455298198
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1778455298198
+model_id: m-509fe6f024c74b12ab490b2377e0b764
+name: PadimONNX
+run_id: 3a4ce5a1cb864f3498bcd3f2cec5442b
+run_link: null
+source: models:/m-509fe6f024c74b12ab490b2377e0b764
+status: READY
+status_message: null
+storage_location: file:///home/moukouba/industrial_anodetect_mlops/mlruns/869752841539980453/models/m-509fe6f024c74b12ab490b2377e0b764/artifacts
+user_id: null
+version: 5

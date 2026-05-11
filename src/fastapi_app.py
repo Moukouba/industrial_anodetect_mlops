@@ -1,3 +1,8 @@
+import sys
+import os
+from pathlib import Path
+sys.path.append(str(Path(os.path.dirname(__file__)) / "AnomaVision"))
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 import uvicorn
@@ -10,7 +15,7 @@ import torch
 import os
 from typing import Optional
 from contextlib import asynccontextmanager
-import AnomaVision.anodet as anodet
+import anodet as anodet
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
@@ -26,13 +31,16 @@ async def load_model():
     global sess, padim_model
     try:
         # Try to load ONNX model first
-        if os.path.exists("padim_model.onnx"):
-            sess = onnxruntime.InferenceSession("padim_model.onnx")
+        onnx_model_path = Path("distributions/padim_model.onnx")
+        pytorch_model_path = Path("distributions/model_padim.pt")
+
+        if onnx_model_path.exists():
+            sess = onnxruntime.InferenceSession(str(onnx_model_path))
             print("ONNX model loaded successfully.")
         # Fallback to PyTorch model
-        elif os.path.exists("distributions/padim_model.pt"):
+        elif pytorch_model_path.exists():
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-            padim_model = torch.load("distributions/padim_model.pt", map_location=device)
+            padim_model = torch.load(str(pytorch_model_path), map_location=device)
             padim_model.eval()
             print("PyTorch model loaded successfully.")
         else:
@@ -349,3 +357,4 @@ if __name__ == "__main__":
     # uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
     
     # To run from command line: uvicorn fastapi_app:app --host 0.0.0.0 --port 8000
+    # uvicorn src.fastapi_app:app --host 0.0.0.0 --port 8000

@@ -1,59 +1,77 @@
 # Multi-stage Dockerfile for FastAPI
 
-# Build stage
-FROM python:3.11-slim as builder
+# Build stage: Installs dependencies
+FROM python:3.11.2-slim as builder
 
-# Set working directory
+# Set working directory inside the container
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies (e.g., for some pip packages)
+# Corrected 'install' to 'apt-get install'
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
-COPY ../requirements/requirements.txt .
+# Copy requirements.txt from the project root (assuming Dockerfile is in 'docker/')
+COPY requirements/requirements.txt .
+
+# Install Python dependencies using --user to install into /root/.local
+# Corrected '--uder' to '--user'
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Production stage
-FROM python:3.11-slim
+# Production stage: Creates a lean image for running the application
+FROM python:3.11.2-slim
 
-# Create non-root user for security
+# Create a non-root user for enhanced security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Set working directory
 WORKDIR /app
 
-# Copy Python dependencies from builder stage
+# Copy Python dependencies from the builder stage's /root/.local
+# These are installed with --user in the builder, so they are in /root/.local
+# We copy them to /home/appuser/.local in the production stage
 COPY --from=builder /root/.local /home/appuser/.local
 
-# Copy only the FastAPI application
-COPY ../src/fastapi_app.py .
+# Copy the core application files from 'src/'
+# Assuming utils.py is also needed by fastapi_app.py
+COPY src/fastapi_app.py .
+COPY src/utils.py .
 
-# Copy AnomaVision package (required for the app)
-COPY ../src/AnomaVision/anodet ./AnomaVision/anodet
+# Copy the entire AnomaVision submodule content from 'src/AnomaVision'
+# This is crucial because fastapi_app.py expects 'AnomaVision' to be on sys.path
+# and imports 'anodet' and 'anomavision' from within it.
+COPY src/AnomaVision ./AnomaVision
 
-# Create directories for model files
+# Create the 'distributions' directory for model files
 RUN mkdir -p distributions
 
-# Copy model files if they exist (optional - can be mounted as volumes)
-COPY ../padim_model.onnx . 
-# COPY ../distributions/padim_model.pt ./distributions/
+# Copy model files from the project root's 'distributions/' folder
+# Corrected paths to reflect they are in 'distributions/'
+COPY distributions/padim_model.onnx ./distributions/
+COPY distributions/model_padim.pt ./distributions/
+# Assuming model_info.json is also needed
+COPY distributions/model_info.json ./distributions/
 
-# Change ownership to non-root user
+# Change ownership of the /app directory to the non-root user
 RUN chown -R appuser:appuser /app
+
+# Switch to the non-root user
 USER appuser
 
-# Add local bin to PATH
+# Add the user's local bin directory to PATH
+# This ensures executables like 'uvicorn' and 'python' from --user installs are found
 ENV PATH=/home/appuser/.local/bin:$PATH
 
-# Expose port
+# Expose the port the FastAPI application will listen on
 EXPOSE 8000
 
-# Health check
+# Health check: Checks if the /health endpoint is reachable
+# Using explicit python path and ensuring requests is available (from requirements.txt)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+    CMD ["/home/appuser/.local/bin/python", "-c", "import requests; requests.get('http://localhost:8000/health').raise_for_status()"] || exit 1
 
-# Run the application
-CMD ["python", "-m", "uvicorn", "fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]
-
+# Command to run the FastAPI application using uvicorn
+# Corrected 'uvcorn' to 'uvicorn' and used explicit path
+# The app is 'src.fastapi_app:app' because fastapi_app.py is copied directly to /app
+CMD ["/home/appuser/.local/bin/uvicorn", "src.fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]

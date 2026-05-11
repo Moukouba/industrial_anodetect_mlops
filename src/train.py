@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--config', type=str, default='config.yml', help='Path to config.yml/.json')
 
     # Dataset paths
-    parser.add_argument('--dataset_path', default="/home/moukouba/DATA/01-DATA/bottle", type=str, help='Path to dataset folder with train/good images')
+    parser.add_argument('--dataset_path', default="~/DATA/01-DATA/bottle", type=str, help='Path to dataset folder with train/good images')
     parser.add_argument('--test_dataset_path', type=str, default=None, help='Path to test dataset (defaults to dataset_path/test)')
 
     # Model paths
@@ -248,6 +248,9 @@ def main():
     # Merge config with CLI args (CLI args override config)
     config = edict(merge_config(args, cfg))
 
+    # Expand user home directory in dataset_path
+    config.dataset_path = os.path.expanduser(config.dataset_path)
+
     # Setup logging with config
     setup_logging(enabled=True, log_level=config.log_level, log_to_file=False)
     logger = get_logger("AnomaVision.train")
@@ -457,3 +460,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+# uv run python src/train.py --evaluate_model

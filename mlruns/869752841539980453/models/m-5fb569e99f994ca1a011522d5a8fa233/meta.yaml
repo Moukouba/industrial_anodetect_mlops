@@ -1,0 +1,10 @@
+artifact_location: file:///home/moukouba/industrial_anodetect_mlops/mlruns/869752841539980453/models/m-5fb569e99f994ca1a011522d5a8fa233/artifacts
+creation_timestamp: 1778368781106
+experiment_id: '869752841539980453'
+last_updated_timestamp: 1778368783276
+model_id: m-5fb569e99f994ca1a011522d5a8fa233
+model_type: null
+name: onnx_model
+source_run_id: c7a8685c11214571bfa94db6728b6042
+status: 2
+status_message: null
