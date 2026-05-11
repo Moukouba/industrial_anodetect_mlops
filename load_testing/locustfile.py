@@ -1,27 +1,24 @@
-from locust import HttpUser, task
-import base64
-import io
-from PIL import Image
+from locust import HttpUser, task, between
+import os
 
-class LoadTest(HttpUser):
-    @task
-    def test_inference(self):
-        # Generate a dummy image in memory (RGB, 224x224)
-        image = Image.new("RGB", (224, 224), color=(255, 0, 0))
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        buffer.seek(0)
+class FastAPIUser(HttpUser):
+    wait_time = between(1, 2)  # Users will wait between 1 and 2 seconds between tasks
 
-        # Simulate sending the file as multipart/form-data
-        files = {
-            "file": ("dummy.png", buffer, "image/png")
-        }
+    @task(3)  # This task will be executed 3 times more often than the health check
+    def predict_endpoint(self):
+        # Ensure the sample image exists
+        image_path = "load_testing/sample_image.png"
+        if not os.path.exists(image_path):
+            print(f"Error: Sample image not found at {image_path}")
+            return
 
-        # self.client.post("/predict", files=files)
+        with open(image_path, "rb") as image_file:
+            files = {"file": ("sample_image.png", image_file, "image/png")}
+            self.client.post("/predict", files=files, name="/predict [POST]")
 
-        params = {"include_visualizations": False}  # Set to False for performance testing
-
-        self.client.post("/predict", files=files, params=params)
-
-
-#  locust -f load_testing\locustfile.py --host http://localhost:8000     
+    @task(1)
+    def health_check(self):
+        self.client.get("/health", name="/health [GET]")
+        
+        
+# locust -f load_testing/locustfile.py

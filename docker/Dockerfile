@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for FastAPI
 
 # Build stage: Installs dependencies
-FROM python:3.11.2-slim as builder
+FROM python:3.11.2-slim AS builder
 
 # Set working directory inside the container
 WORKDIR /app
@@ -33,15 +33,8 @@ WORKDIR /app
 # We copy them to /home/appuser/.local in the production stage
 COPY --from=builder /root/.local /home/appuser/.local
 
-# Copy the core application files from 'src/'
-# Assuming utils.py is also needed by fastapi_app.py
-COPY src/fastapi_app.py .
-COPY src/utils.py .
-
-# Copy the entire AnomaVision submodule content from 'src/AnomaVision'
-# This is crucial because fastapi_app.py expects 'AnomaVision' to be on sys.path
-# and imports 'anodet' and 'anomavision' from within it.
-COPY src/AnomaVision ./AnomaVision
+# Copy the entire 'src' directory to '/app/src' to preserve the package structure
+COPY src ./src
 
 # Create the 'distributions' directory for model files
 RUN mkdir -p distributions
@@ -49,7 +42,8 @@ RUN mkdir -p distributions
 # Copy model files from the project root's 'distributions/' folder
 # Corrected paths to reflect they are in 'distributions/'
 COPY distributions/padim_model.onnx ./distributions/
-COPY distributions/model_padim.pt ./distributions/
+COPY distributions/padim_model.onnx.data ./distributions/
+#COPY distributions/model_padim.pt ./distributions/
 # Assuming model_info.json is also needed
 COPY distributions/model_info.json ./distributions/
 
@@ -58,6 +52,9 @@ RUN chown -R appuser:appuser /app
 
 # Switch to the non-root user
 USER appuser
+
+# Set Matplotlib configuration directory to a writable path
+ENV MPLCONFIGDIR=/tmp
 
 # Add the user's local bin directory to PATH
 # This ensures executables like 'uvicorn' and 'python' from --user installs are found
